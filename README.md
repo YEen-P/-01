@@ -1,1 +1,691 @@
-# -01
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>행밥 단체 주문 견적</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f4f5;
+      color: #111827;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      background: #111827;
+      color: white;
+    }
+    header .logo {
+      font-weight: 700;
+      font-size: 18px;
+    }
+    header .subtitle {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    main {
+      display: flex;
+      gap: 16px;
+      padding: 16px 24px 24px;
+    }
+
+    /* 왼쪽: 음식점 목록 */
+    #restaurant-list-view {
+      flex: 1;
+      max-width: 360px;
+    }
+    #restaurant-list-view h2 {
+      margin-top: 0;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    .restaurant-card {
+      background: white;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      border: 1px solid #e5e7eb;
+      transition: box-shadow 0.15s ease, transform 0.1s ease, border-color 0.1s ease;
+    }
+    .restaurant-card:hover {
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      transform: translateY(-1px);
+      border-color: #111827;
+    }
+    .restaurant-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .restaurant-meta {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    .restaurant-tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4f46e5;
+      margin-right: 4px;
+    }
+
+    /* 오른쪽: 상세 + 주문폼 */
+    #right-panel {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid #e5e7eb;
+    }
+    .card h2 {
+      margin-top: 0;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    .card h3 {
+      margin-top: 12px;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+    .small {
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .pill {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-right: 4px;
+      margin-top: 2px;
+    }
+    .pill-yes {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .pill-no {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #f3f4f6;
+      text-align: left;
+    }
+    th {
+      background: #f9fafb;
+    }
+    .menu-row input[type="number"] {
+      width: 60px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 12px;
+      margin-bottom: 6px;
+    }
+
+    .btn-primary {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: none;
+      background: #111827;
+      color: white;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-secondary {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: white;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .field {
+      margin-bottom: 10px;
+    }
+    .field label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      padding: 6px 8px;
+      font-size: 13px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    .highlight-box {
+      border-radius: 10px;
+      background: #f9fafb;
+      padding: 10px;
+      font-size: 12px;
+      margin-bottom: 8px;
+      border: 1px dashed #e5e7eb;
+    }
+
+    @media (max-width: 800px) {
+      main {
+        flex-direction: column;
+      }
+      #restaurant-list-view {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">행밥 단체 주문</div>
+    <div class="subtitle">학과·동아리·학생회 단체 행사를 위한 간편 견적 요청</div>
+  </div>
+</header>
+
+<main>
+  <!-- 왼쪽: 음식점 목록 -->
+  <section id="restaurant-list-view">
+    <h2>참여 음식점</h2>
+    <div class="small" style="margin-bottom:8px;">
+      주문할 음식점을 선택한 뒤, 오른쪽에서 메뉴 수량을 선택하고 견적서를 제출해주세요.
+    </div>
+    <div id="restaurant-list"></div>
+  </section>
+
+  <!-- 오른쪽: 음식점 상세 + 주문 폼 -->
+  <section id="right-panel">
+
+    <!-- 음식점 상세 -->
+    <div id="restaurant-detail-view" class="card">
+      <h2 id="rest-name">음식점을 먼저 선택해주세요</h2>
+      <div id="rest-meta" class="small"></div>
+      <div id="rest-notice" class="small" style="margin-top:4px;"></div>
+
+      <h3>예약 가능 시간</h3>
+      <div id="availability-container" class="small">왼쪽에서 음식점을 선택하면 예약 가능 시간이 표시됩니다.</div>
+
+      <h3>메뉴 / 수량 / 할인</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>메뉴</th>
+            <th>기본 가격</th>
+            <th>수량(최소~최대)</th>
+            <th>할인 안내</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="menu-body"></tbody>
+      </table>
+      <div class="small" style="margin-top:6px;">
+        수량을 입력한 뒤 <b>담기</b>를 눌러주세요. 여러 메뉴를 함께 담을 수 있습니다.
+      </div>
+    </div>
+
+    <!-- 주문 폼 -->
+    <div class="card">
+      <h2>단체 주문 견적서</h2>
+      <div class="highlight-box">
+        <div><b>1)</b> 왼쪽에서 음식점 선택</div>
+        <div><b>2)</b> 위에서 메뉴·수량 담기</div>
+        <div><b>3)</b> 아래 견적서를 작성하고 제출</div>
+      </div>
+      <div id="cart-summary" class="small" style="margin-bottom:8px;">
+        현재 담긴 메뉴가 없습니다. (메뉴를 담으면 여기에서 한 번에 확인할 수 있어요)
+      </div>
+
+      <form id="order-form">
+        <div class="section-title">단체 정보</div>
+
+        <div class="field">
+          <label>단체 이름 / 학생회 이름</label>
+          <input type="text" name="단체명" placeholder="예: 사회학과 학생회" required />
+        </div>
+
+        <div class="field">
+          <label>담당자 이름</label>
+          <input type="text" name="담당자명" placeholder="예: 홍길동" required />
+        </div>
+
+        <div class="field">
+          <label>담당자 연락처</label>
+          <input type="text" name="담당자_연락처" placeholder="예: 010-0000-0000" required />
+        </div>
+
+        <div class="field">
+          <label>담당자 이메일</label>
+          <input type="email" name="담당자_이메일" placeholder="견적 회신 받을 이메일" required />
+        </div>
+
+        <div class="section-title">배송 / 일정 정보</div>
+
+        <div class="field">
+          <label>배송 방법</label>
+          <select name="배송_방법" required>
+            <option value="">선택하세요</option>
+            <option value="배달">배달</option>
+            <option value="픽업">픽업</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>배달 주소 (또는 픽업 수령 장소)</label>
+          <input type="text" name="주소_또는_수령장소" placeholder="예: 고려대학교 ○○관 1층 로비" required />
+        </div>
+
+        <div class="field">
+          <label>희망 날짜 / 시간</label>
+          <input type="text" name="희망_일시" placeholder="예: 12월 10일(화) 11:30" required />
+        </div>
+
+        <div class="section-title">추가 요청사항</div>
+
+        <div class="field">
+          <label>요청사항 / 참고사항</label>
+          <textarea name="추가_요청사항" placeholder="예: 포장 개별 포장 / 비건 메뉴 별도 구분 / 예산 범위 등"></textarea>
+        </div>
+
+        <div class="small" style="margin-bottom:8px;">
+          제출을 누르면, 선택한 음식점·메뉴·수량·예상금액과 함께 Supabase DB에 저장됩니다.
+        </div>
+
+        <button type="submit" class="btn-primary">
+          견적 요청 보내기
+        </button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<!-- Supabase JS (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  // ===== 0. Supabase 연결 (여기만 네 프로젝트 값으로 바꾸기!) =====
+  const SUPABASE_URL = "https://owfljerawghlyswtylxs.supabase.co";   // ← 네 프로젝트 URL
+  const SUPABASE_KEY = "sb_publishable_izKjuHR5y7O-xJANpPrS_A_ScU3hLrO";          // ← anon 또는 publishable 키
+
+  // CDN으로 불러온 전역 객체: supabase.createClient(...) 사용 :contentReference[oaicite:4]{index=4}
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ===== 1. 상태 저장 =====
+  const state = {
+    selectedRestaurantId: null,
+    cart: [] // {restaurantId, menuId, name, qty, price}
+  };
+
+  // ===== 2. 음식점 데이터 (여기만 수정하면 가게 정보 바뀜) =====
+  const restaurants = [
+    {
+      id: 'r1',
+      name: '홍콩반점 안암점',
+      meta: '중식 · 최대 100인 · 안암역 도보 3분',
+      tags: ['점심 행사 추천', '김치/단무지 제공'],
+      notice: '10만원 이상 주문 시 배달 가능, 대량 주문 시 찹쌀탕수육 서비스 등 협의 가능합니다.',
+      availability: [
+        { date: '12/05(금)', slots: [
+          { time: '11:00', available: true },
+          { time: '12:00', available: true },
+          { time: '13:00', available: false }
+        ]},
+        { date: '12/06(토)', slots: [
+          { time: '11:00', available: false },
+          { time: '12:00', available: true }
+        ]}
+      ],
+      menus: [
+        {
+          id: 'm1',
+          name: '짬뽕 + 탕수육 세트(2인 기준)',
+          price: 12000,
+          minQty: 10,
+          maxQty: 60,
+          discountDesc: '30개 이상 주문 시 총액 10% 할인'
+        },
+        {
+          id: 'm2',
+          name: '차돌짬뽕 도시락',
+          price: 9000,
+          minQty: 20,
+          maxQty: 100,
+          discountDesc: '50개 이상 주문 시 1인당 1,000원 할인'
+        }
+      ]
+    },
+    {
+      id: 'r2',
+      name: '안암김밥 도시락',
+      meta: '분식 · 최대 150인 · 교내 근처',
+      tags: ['간식 행사', '야근 간편식'],
+      notice: '간식행사 / 시험기간 야식용으로 많이 이용되는 분식 도시락 전문점입니다.',
+      availability: [
+        { date: '12/07(일)', slots: [
+          { time: '10:00', available: true },
+          { time: '11:00', available: true },
+          { time: '12:00', available: true }
+        ]}
+      ],
+      menus: [
+        {
+          id: 'm3',
+          name: '모듬 김밥 도시락',
+          price: 7000,
+          minQty: 30,
+          maxQty: 200,
+          discountDesc: '100개 이상 주문 시 김밥 10줄 추가 제공'
+        },
+        {
+          id: 'm4',
+          name: '떡볶이 + 튀김 세트',
+          price: 8000,
+          minQty: 20,
+          maxQty: 100,
+          discountDesc: '50개 이상 주문 시 튀김 1인분 추가'
+        }
+      ]
+    }
+  ];
+
+  // ===== 3. 렌더링 함수들 =====
+  function init() {
+    renderRestaurantList();
+    if (restaurants.length > 0) {
+      state.selectedRestaurantId = restaurants[0].id;
+      renderRestaurantDetail();
+    }
+    renderCartSummary();
+
+    const form = document.getElementById('order-form');
+    form.addEventListener('submit', submitOrder);
+  }
+
+  function renderRestaurantList() {
+    const container = document.getElementById('restaurant-list');
+    container.innerHTML = '';
+    restaurants.forEach(r => {
+      const card = document.createElement('div');
+      card.className = 'restaurant-card';
+      card.onclick = () => {
+        state.selectedRestaurantId = r.id;
+        renderRestaurantDetail();
+        state.cart = state.cart.filter(item => item.restaurantId === r.id);
+        renderCartSummary();
+      };
+
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'restaurant-name';
+      nameDiv.textContent = r.name;
+
+      const metaDiv = document.createElement('div');
+      metaDiv.className = 'restaurant-meta';
+      metaDiv.textContent = r.meta;
+
+      const tagsDiv = document.createElement('div');
+      r.tags.forEach(t => {
+        const tagSpan = document.createElement('span');
+        tagSpan.className = 'restaurant-tag';
+        tagSpan.textContent = t;
+        tagsDiv.appendChild(tagSpan);
+      });
+
+      card.appendChild(nameDiv);
+      card.appendChild(metaDiv);
+      card.appendChild(tagsDiv);
+
+      container.appendChild(card);
+    });
+  }
+
+  function getSelectedRestaurant() {
+    return restaurants.find(r => r.id === state.selectedRestaurantId) || null;
+  }
+
+  function renderRestaurantDetail() {
+    const rest = getSelectedRestaurant();
+    const nameEl = document.getElementById('rest-name');
+    const metaEl = document.getElementById('rest-meta');
+    const noticeEl = document.getElementById('rest-notice');
+    const availContainer = document.getElementById('availability-container');
+    const menuBody = document.getElementById('menu-body');
+
+    if (!rest) {
+      nameEl.textContent = '음식점을 먼저 선택해주세요';
+      metaEl.textContent = '';
+      noticeEl.textContent = '';
+      availContainer.textContent = '왼쪽에서 음식점을 선택하면 예약 가능 시간이 표시됩니다.';
+      menuBody.innerHTML = '';
+      return;
+    }
+
+    nameEl.textContent = rest.name;
+    metaEl.textContent = rest.meta;
+    noticeEl.textContent = '안내사항: ' + rest.notice;
+
+    // 예약 가능 시간
+    availContainer.innerHTML = '';
+    rest.availability.forEach(day => {
+      const dayDiv = document.createElement('div');
+      dayDiv.style.marginBottom = '4px';
+      const dateSpan = document.createElement('span');
+      dateSpan.style.fontWeight = '600';
+      dateSpan.textContent = day.date + ' ';
+      dayDiv.appendChild(dateSpan);
+
+      day.slots.forEach(s => {
+        const pill = document.createElement('span');
+        pill.className = 'pill ' + (s.available ? 'pill-yes' : 'pill-no');
+        pill.textContent = s.time + (s.available ? ' 가능' : ' 불가');
+        dayDiv.appendChild(pill);
+      });
+
+      availContainer.appendChild(dayDiv);
+    });
+
+    // 메뉴 리스트
+    menuBody.innerHTML = '';
+    rest.menus.forEach(menu => {
+      const tr = document.createElement('tr');
+      tr.className = 'menu-row';
+
+      const tdName = document.createElement('td');
+      tdName.textContent = menu.name;
+
+      const tdPrice = document.createElement('td');
+      tdPrice.textContent = menu.price.toLocaleString() + '원';
+
+      const tdQty = document.createElement('td');
+      const qtyInput = document.createElement('input');
+      qtyInput.type = 'number';
+      qtyInput.min = menu.minQty;
+      qtyInput.max = menu.maxQty;
+      qtyInput.value = menu.minQty;
+      qtyInput.id = `qty-${rest.id}-${menu.id}`;
+      tdQty.appendChild(qtyInput);
+      const minMaxSpan = document.createElement('span');
+      minMaxSpan.className = 'small';
+      minMaxSpan.style.marginLeft = '4px';
+      minMaxSpan.textContent = `(${menu.minQty}~${menu.maxQty}개)`;
+      tdQty.appendChild(minMaxSpan);
+
+      const tdDiscount = document.createElement('td');
+      tdDiscount.textContent = menu.discountDesc;
+
+      const tdBtn = document.createElement('td');
+      const addBtn = document.createElement('button');
+      addBtn.className = 'btn-secondary';
+      addBtn.style.fontSize = '11px';
+      addBtn.textContent = '담기';
+      addBtn.type = 'button';
+      addBtn.onclick = () => addToCart(rest.id, menu.id);
+      tdBtn.appendChild(addBtn);
+
+      tr.appendChild(tdName);
+      tr.appendChild(tdPrice);
+      tr.appendChild(tdQty);
+      tr.appendChild(tdDiscount);
+      tr.appendChild(tdBtn);
+
+      menuBody.appendChild(tr);
+    });
+  }
+
+  function addToCart(restaurantId, menuId) {
+    const rest = restaurants.find(r => r.id === restaurantId);
+    if (!rest) return;
+    const menu = rest.menus.find(m => m.id === menuId);
+    if (!menu) return;
+
+    const qtyInput = document.getElementById(`qty-${restaurantId}-${menuId}`);
+    const qty = parseInt(qtyInput.value, 10);
+    if (isNaN(qty) || qty < menu.minQty || qty > menu.maxQty) {
+      alert(`수량은 ${menu.minQty}~${menu.maxQty}개 사이로 입력해주세요.`);
+      return;
+    }
+
+    const existing = state.cart.find(
+      item => item.restaurantId === restaurantId && item.menuId === menuId
+    );
+    if (existing) {
+      const newQty = existing.qty + qty;
+      if (newQty > menu.maxQty) {
+        alert(`최대 수량(${menu.maxQty}개)를 초과할 수 없습니다.`);
+        return;
+      }
+      existing.qty = newQty;
+    } else {
+      state.cart.push({
+        restaurantId,
+        menuId,
+        name: menu.name,
+        qty,
+        price: menu.price
+      });
+    }
+
+    alert(`장바구니에 담았습니다.\n(${menu.name} x ${qty}개)`);
+    renderCartSummary();
+  }
+
+  function renderCartSummary() {
+    const summaryEl = document.getElementById('cart-summary');
+    const rest = getSelectedRestaurant();
+    const items = state.cart;
+    if (!rest || items.length === 0) {
+      summaryEl.textContent =
+        '현재 담긴 메뉴가 없습니다. (메뉴를 담으면 여기에서 한 번에 확인할 수 있어요)';
+      return;
+    }
+
+    let total = 0;
+    let lines = items.map(item => {
+      const lineTotal = item.price * item.qty;
+      total += lineTotal;
+      return `- ${item.name} x ${item.qty}개 = ${lineTotal.toLocaleString()}원`;
+    });
+
+    summaryEl.innerHTML =
+      `<b>선택한 음식점:</b> ${rest.name}<br>` +
+      lines.join('<br>') +
+      `<br><br><b>예상 기본 금액 합계: ${total.toLocaleString()}원</b><br>` +
+      `<span class="small">※ 실제 할인 및 최종 금액은 가게와 협의 후 확정됩니다.</span>`;
+  }
+
+  // ===== 4. 주문 제출 → Supabase에 저장 =====
+  async function submitOrder(event) {
+    event.preventDefault();
+
+    const rest = getSelectedRestaurant();
+    if (!rest) {
+      alert('먼저 왼쪽에서 음식점을 선택해주세요.');
+      return;
+    }
+    if (state.cart.length === 0) {
+      alert('메뉴를 하나 이상 담아주세요.');
+      return;
+    }
+
+    const form = document.getElementById('order-form');
+    const formData = new FormData(form);
+
+    let total = 0;
+    const items = state.cart.map(item => {
+      const lineTotal = item.price * item.qty;
+      total += lineTotal;
+      return {
+        name: item.name,
+        qty: item.qty,
+        price: item.price,
+        line_total: lineTotal
+      };
+    });
+
+    const payload = {
+      restaurant_id: rest.id,
+      restaurant_name: rest.name,
+      items: items,
+      total_amount: total,
+
+      org_name: formData.get('단체명'),
+      contact_name: formData.get('담당자명'),
+      contact_phone: formData.get('담당자_연락처'),
+      contact_email: formData.get('담당자_이메일'),
+
+      delivery_type: formData.get('배송_방법'),
+      address: formData.get('주소_또는_수령장소'),
+      desired_datetime: formData.get('희망_일시'),
+      memo: formData.get('추가_요청사항')
+    };
+
+    try {
+      const { error } = await supabaseClient
+        .from('orders')
+        .insert([payload]);
+
+      if (error) {
+        console.error(error);
+        alert('주문 저장 중 오류가 발생했습니다. 나중에 다시 시도해주세요.');
+        return;
+      }
+
+      alert('견적 요청이 접수되었습니다! 행밥 팀에서 확인 후 연락드릴게요.');
+
+      form.reset();
+      state.cart = [];
+      renderCartSummary();
+    } catch (e) {
+      console.error(e);
+      alert('일시적인 오류가 발생했습니다. 나중에 다시 시도해주세요.');
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
