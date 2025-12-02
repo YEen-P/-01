@@ -442,9 +442,9 @@
       images: [
         'res_Photo/bonjook1.png',
       ],
-      meta: '도시락/죽 · 100인 이상 · 3~4일 전 예약',
+      meta: '비빔밥/죽 · 100인 이상 · 3~4일 전 예약',
       tags: ['한식', '속편한 식사', '비빔밥'],
-      notice: '포장/배달 가능 여부 확인 필요',
+      notice: '배달, 픽업 둘다 가능',
       availability: [],
       menus: [
         { id: 'm1_1', name: '6가지나물비빔밥', price: 10500, minQty: 10, maxQty: 100, note: '' },
@@ -471,7 +471,7 @@
       ],
       meta: '비빔밥 · 100인 이상 · 2일 전 예약',
       tags: ['샐러드비빔밥(샐비)', '산채비빔밥', '건강식'],
-      notice: '10~20인분 배달무료 / 100인분 이상 금액 협의',
+      notice: '10~20인분 배달무료 / 100인분 이상 금액 협의 / 월요일은 11시 이후만 가능',
       availability: [],
       menus: [
         { id: 'm2_1', name: '불맛 쭈꾸미삼겹 산채', price: 9900, minQty: 10, maxQty: 200, note: '100인↑ 협의' },
@@ -509,7 +509,7 @@
       ],
       meta: '돈가스 · 100개(협의) · 2일 전 예약',
       tags: ['돈가스 전문', '픽업 전용'],
-      notice: '1~2시 픽업 불가 / 50개 이상 사전 예약 필수',
+      notice: '픽업만 가능 / 1~2시 불가',
       availability: [],
       menus: [
         { id: 'm3_1', name: '돈가스', price: 12000, minQty: 10, maxQty: 100, note: '' }
@@ -525,7 +525,7 @@
       ],
       meta: '샌드위치/부리또 · 100개(협의) · 5일 전 예약',
       tags: ['핫도그', '부리또', '간편식'],
-      notice: '대량 주문 시 사장님 컨펌 후 할인 가능',
+      notice: '배달, 픽업 둘다 가능 / 100개 이하면 서비스',
       availability: [],
       menus: [
         { id: 'm4_1', name: '수제 소시지 핫도그', price: 5000, minQty: 20, maxQty: 150, note: '' },
@@ -550,9 +550,9 @@
         'res_Photo/froma3.png',
         'res_Photo/froma4.png'
       ],
-      meta: '샌드위치/파니니 · 100개 · 3~7일 전',
+      meta: '샌드위치/파니니 · 100개 · 3~7일 전 예약',
       tags: ['파니니', '샌드위치', '비건옵션'],
-      notice: '최소 3일 전 예약, 대량은 1주일 전',
+      notice: '배달, 픽업 둘다 가능 / 100개 기준 1주일 전 예약 필요',
       availability: [],
       menus: [
         { id: 'm5_1', name: '페스토 치킨 파니니', price: 10400, minQty: 10, maxQty: 100, note: '' },
@@ -574,10 +574,10 @@
     {
       id: 'r6',
       name: '치비치비',
-      images: ['res_Photo/chibechibe.png'],
-      meta: '양식/스테이크 · 50개(협의) · 7일 전',
+      images: ['res_Photo/chibechibe.jpeg'],
+      meta: '양식/스테이크 · 50개(협의) · 7일 전 예약',
       tags: ['치킨스테이크', '양식'],
-      notice: '포장시 음식이 식을 수 있음 / 보통맛·매운맛 선택 가능',
+      notice: '픽업만 가능 / 포장시 음식이 식을 수 있음 / 보통맛·매운맛 선택 가능',
       availability: [],
       menus: [
         { id: 'm6_1', name: '간장 스테이크', price: 11500, minQty: 10, maxQty: 50, note: '보통맛/매운맛' },
@@ -591,9 +591,9 @@
       id: 'r7',
       name: '스시미소',
       images: ['res_Photo/sushimiso.png'],
-      meta: '일식 · 100인 이상 · 당일~1일 전',
+      meta: '일식 · 100인 이상 · 당일~1일 전 예약',
       tags: ['초밥', '롤', '고급 도시락'],
-      notice: '배달은 전날 예약, 오후 주문시 당일 가능 협의',
+      notice: '배달은 전날 예약',
       availability: [],
       menus: [
         { id: 'm7_1', name: '미소초밥모둠(10p)', price: 15000, minQty: 10, maxQty: 150, note: '' },
@@ -628,14 +628,14 @@
       id: 'r8',
       name: '오봉집',
       images: ['res_Photo/obong.png'],
-      meta: '한식/볶음 · 100인 이상 · 1일 전',
+      meta: '한식/볶음 · 100인 이상 · 1일 전 예약',
       tags: ['직화볶음', '보쌈', '점심할인'],
-      notice: '11~15시 점심시간 가격 할인 적용 가능',
+      notice: '픽업만 가능 / 11~15시 점심특선 가격 적용 가능',
       availability: [],
       menus: [
-        { id: 'm8_1', name: '직화제육볶음', price: 11000, minQty: 10, maxQty: 150, note: '점심시간 10,000원' },
-        { id: 'm8_2', name: '직화낙지볶음', price: 14000, minQty: 10, maxQty: 150, note: '점심시간 12,000원' },
-        { id: 'm8_3', name: '직화제낙볶음', price: 14000, minQty: 10, maxQty: 150, note: '점심시간 12,000원' },
+        { id: 'm8_1', name: '직화제육볶음', price: 11000, minQty: 10, maxQty: 150, note: '점심특선가 10,000원' },
+        { id: 'm8_2', name: '직화낙지볶음', price: 14000, minQty: 10, maxQty: 150, note: '점심특선가 12,000원' },
+        { id: 'm8_3', name: '직화제낙볶음', price: 14000, minQty: 10, maxQty: 150, note: '점심특선가 12,000원' },
         { id: 'm8_4', name: '보쌈정식', price: 10000, minQty: 10, maxQty: 150, note: '' },
         { id: 'm8_5', name: '왕만두(김치/고기/반반)', price: 6000, minQty: 10, maxQty: 150, note: '' },
         { id: 'm8_6', name: '돼지불고기', price: 9000, minQty: 10, maxQty: 150, note: '' }
@@ -645,9 +645,9 @@
       id: 'r9',
       name: '우승식당',
       images: ['res_Photo/wooseng.png'],
-      meta: '한식 · 100개(협의) · 당일~1일 전',
+      meta: '한식 · 100개(협의) · 당일~1일 전 예약',
       tags: ['제육', '두루치기', '가성비'],
-      notice: '50개 이상 주문 시 서비스 협의',
+      notice: '50개 이상 주문 시 서비스 제공 / 고기만 채운 도시락 형태',
       availability: [],
       menus: [
         { id: 'm9_1', name: '제육볶음', price: 9000, minQty: 10, maxQty: 100, note: '' },
@@ -660,9 +660,9 @@
       id: 'r10',
       name: '이공김밥',
       images: ['res_Photo/eegong.png'],
-      meta: '분식 · 100인 이상 · 1~3일 전',
+      meta: '분식 · 100인 이상 · 1~3일 전 예약',
       tags: ['김밥', '돈가스', '가성비'],
-      notice: '오전 일찍 픽업 가능, 서비스 제공',
+      notice: '배달 협의 가능',
       availability: [],
       menus: [
         { id: 'm10_1', name: '이공김밥', price: 3500, minQty: 20, maxQty: 300, note: '' },
@@ -688,18 +688,6 @@
         { id: 'm10_21', name: '치즈돈가스', price: 8000, minQty: 10, maxQty: 100, note: '' },
         { id: 'm10_22', name: '고구마돈가스', price: 7500, minQty: 10, maxQty: 100, note: '' },
         { id: 'm10_23', name: '등심돈가스', price: 7500, minQty: 10, maxQty: 100, note: '' }
-      ]
-    },
-    {
-      id: 'r11',
-      name: '철남',
-      images: ['https://placehold.co/600x400/red/white?text=CheolNam'],
-      meta: '두루치기 · 100인 이상 · 픽업 전용',
-      tags: ['밥반찬 제공', '할인 가능', '밥 포함'],
-      notice: '50개 기준 개당 500원 할인 (사장님 상의 필요)',
-      availability: [],
-      menus: [
-        { id: 'm11_1', name: '두루치기 도시락', price: 8000, minQty: 10, maxQty: 200, note: '50개↑ 개당 500원 할인' }
       ]
     }
   ];
