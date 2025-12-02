@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>행밥 관리자 페이지</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f4f4f5; }
+    h1 { margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th, td { border: 1px solid #ddd; padding: 8px; font-size: 14px; }
+    th { background: #111827; color: white; }
+    select { padding: 6px; }
+    button { padding: 6px 10px; cursor: pointer; }
+    #login-box { margin: 60px auto; width: 300px; background:white; padding:20px; border-radius:10px; }
+    #admin-panel { display:none; }
+  </style>
+</head>
+<body>
+
+<div id="login-box">
+  <h3>🔐 관리자 로그인</h3>
+  <input id="admin-password" type="password" placeholder="비밀번호 입력" style="width:100%; padding:6px;">
+  <button onclick="verifyPassword()" style="margin-top:10px;width:100%;">로그인</button>
+</div>
+
+<div id="admin-panel">
+  <h1>📦 행밥 주문 관리</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>시간</th>
+        <th>가게</th>
+        <th>단체명</th>
+        <th>연락처</th>
+        <th>메뉴/수량</th>
+        <th>금액</th>
+        <th>상태</th>
+      </tr>
+    </thead>
+    <tbody id="order-list"></tbody>
+  </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const PASSWORD = "hangbab-admin";  // ❗ 이걸 너 원하는 걸로 바꿔
+const client = supabase.createClient(
+  "https://owfljerawghlyswtylxs.supabase.co",
+  "sb_publishable_izKjuHR5y7O-xJANpPrS_A_ScU3hLrO"
+);
+
+function verifyPassword() {
+  const input = document.getElementById("admin-password").value;
+  if (input === PASSWORD) {
+    document.getElementById("login-box").style.display = "none";
+    document.getElementById("admin-panel").style.display = "block";
+    loadOrders();
+  } else {
+    alert("잘못된 비밀번호입니다.");
+  }
+}
+
+async function loadOrders() {
+  const { data, error } = await client.from("orders").select("*").order("created_at", { ascending: false });
+
+  const tableBody = document.getElementById("order-list");
+  tableBody.innerHTML = "";
+
+  data.forEach(order => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${new Date(order.created_at).toLocaleString()}</td>
+      <td>${order.restaurant_name}</td>
+      <td>${order.org_name}</td>
+      <td>${order.contact_phone}</td>
+      <td>${order.items.map(i => `${i.name} x ${i.qty}`).join("<br>")}</td>
+      <td>${order.total_amount.toLocaleString()}원</td>
+      <td>
+        <select onchange="updateStatus('${order.id}', this.value)">
+          <option value="pending" ${order.status==="pending"?"selected":""}>⏳ 요청됨</option>
+          <option value="confirmed" ${order.status==="confirmed"?"selected":""}>✅ 확인됨</option>
+          <option value="completed" ${order.status==="completed"?"selected":""}>🎉 완료</option>
+          <option value="rejected" ${order.status==="rejected"?"selected":""}>❌ 거절</option>
+        </select>
+      </td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+
+async function updateStatus(id, status) {
+  await client.from("orders").update({ status }).eq("id", id);
+  alert("상태가 업데이트되었습니다.");
+}
+</script>
+
+</body>
+</html>
