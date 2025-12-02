@@ -342,76 +342,106 @@
 
   // ===== 2. 음식점 데이터 (여기만 수정하면 가게 정보 바뀜) =====
   const restaurants = [
-    {
-      id: 'r1',
-      name: '홍콩반점 안암점',
-      meta: '중식 · 최대 100인 · 안암역 도보 3분',
-      tags: ['점심 행사 추천', '김치/단무지 제공'],
-      notice: '10만원 이상 주문 시 배달 가능, 대량 주문 시 찹쌀탕수육 서비스 등 협의 가능합니다.',
-      availability: [
-        { date: '12/05(금)', slots: [
-          { time: '11:00', available: true },
-          { time: '12:00', available: true },
-          { time: '13:00', available: false }
-        ]},
-        { date: '12/06(토)', slots: [
-          { time: '11:00', available: false },
-          { time: '12:00', available: true }
-        ]}
-      ],
-      menus: [
-        {
-          id: 'm1',
-          name: '짬뽕 + 탕수육 세트(2인 기준)',
-          price: 12000,
-          minQty: 10,
-          maxQty: 60,
-          discountDesc: '30개 이상 주문 시 총액 10% 할인'
-        },
-        {
-          id: 'm2',
-          name: '차돌짬뽕 도시락',
-          price: 9000,
-          minQty: 20,
-          maxQty: 100,
-          discountDesc: '50개 이상 주문 시 1인당 1,000원 할인'
-        }
-      ]
-    },
-    {
-      id: 'r2',
-      name: '안암김밥 도시락',
-      meta: '분식 · 최대 150인 · 교내 근처',
-      tags: ['간식 행사', '야근 간편식'],
-      notice: '간식행사 / 시험기간 야식용으로 많이 이용되는 분식 도시락 전문점입니다.',
-      availability: [
-        { date: '12/07(일)', slots: [
-          { time: '10:00', available: true },
-          { time: '11:00', available: true },
-          { time: '12:00', available: true }
-        ]}
-      ],
-      menus: [
-        {
-          id: 'm3',
-          name: '모듬 김밥 도시락',
-          price: 7000,
-          minQty: 30,
-          maxQty: 200,
-          discountDesc: '100개 이상 주문 시 김밥 10줄 추가 제공'
-        },
-        {
-          id: 'm4',
-          name: '떡볶이 + 튀김 세트',
-          price: 8000,
-          minQty: 20,
-          maxQty: 100,
-          discountDesc: '50개 이상 주문 시 튀김 1인분 추가'
-        }
-      ]
-    }
-  ];
-
+  {
+    id: 'r1',
+    name: '분도시락',
+    meta: '도시락 · 최대 무제한 · 3~4일 전 예약',
+    tags: ['도시락 전문', '대량 행사 추천', '중식/한식 구성'],
+    notice: '포장/배달 가능 여부 확인 필요',
+    availability: [],
+    menus: []
+  },
+  {
+    id: 'r2',
+    name: '비비당(비빔밥)',
+    meta: '도시락 · 최대 100인 이상 · 이틀 전 예약',
+    tags: ['비빔밥 전문', '시험기간 인기', '배달 가능'],
+    notice: '10~20인분 배달료 무료 또는 추가 서비스 협의 가능',
+    availability: [],
+    menus: []
+  },
+  {
+    id: 'r3',
+    name: '고려돈가스',
+    meta: '돈가스 · 최대 50~100개 · 최소 이틀 전 예약',
+    tags: ['가성비 좋음', '포장 권장'],
+    notice: '인원 많을 경우 미리 예약 필수. 배달은 시간대에 따라 협의 필요',
+    availability: [],
+    menus: []
+  },
+  {
+    id: 'r4',
+    name: '밀플랩비',
+    meta: '샌드위치 · 최대 ~150개 · 5일 전 예약',
+    tags: ['샌드위치 전문', '배달/픽업 가능'],
+    notice: '인원 많을 경우 배달비 협의 필요',
+    availability: [],
+    menus: []
+  },
+  {
+    id: 'r5',
+    name: '프로맛치',
+    meta: '샌드위치 · 최대 100개 · 최소 3일 전 예약',
+    tags: ['가성비 샌드위치', '포장 깔끔'],
+    notice: '배달 협의 필요',
+    availability: [],
+    menus: []
+  },
+  {
+    id: 'r6',
+    name: '처비치비',
+    meta: '양식 · 최대 50개 · 최소 일주일 전 예약',
+    tags: ['치킨스테이크', '양식 도시락', '비수기 협의'],
+    notice: '점심시간 포장 추천',
+    availability: [],
+    menus: []
+  },
+  {
+    id: 'r7',
+    name: '스시미소',
+    meta: '일식 · 최대 무제한 · 전날 오후까지 예약',
+    tags: ['초밥/롤 가능', '배달 가능'],
+    notice: '상황에 따라 협의 필요',
+    availability: [],
+    menus: []
+  },
+  {
+    id: 'r8',
+    name: '오봉집',
+    meta: '한식 · 무제한 · 전날 예약',
+    tags: ['점심 주문 多', '한식 도시락'],
+    notice: '점심시간 포장/배달 가능 여부 확인 필요',
+    availability: [],
+    menus: []
+  },
+  {
+    id: 'r9',
+    name: '우송식당',
+    meta: '한식 · 포장 가능 · 당일 가능(전화 필수)',
+    tags: ['가성비', '배달 협의'],
+    notice: '수량 많으면 서비스 제공 협의 가능',
+    availability: [],
+    menus: []
+  },
+  {
+    id: 'r10',
+    name: '철남',
+    meta: '두루치기 · 최대 무제한 · 배달/픽업',
+    tags: ['밥반찬 제공', '취식 용이'],
+    notice: '50개 기준 총 5000원 할인 협의 가능',
+    availability: [],
+    menus: []
+  },
+  {
+    id: 'r11',
+    name: '이공김밥',
+    meta: '분식 · 200~300개 가능 · 최소 2~3일 전 예약',
+    tags: ['단체 간식행사 추천', '대량 생산 가능'],
+    notice: '시간대 협의 필수(9시~7시 운영)',
+    availability: [],
+    menus: []
+  }
+];
   // ===== 3. 렌더링 함수들 =====
   function init() {
     renderRestaurantList();
