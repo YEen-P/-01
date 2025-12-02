@@ -51,12 +51,23 @@
       cursor: pointer;
       border: 1px solid #e5e7eb;
       transition: box-shadow 0.15s ease, transform 0.1s ease, border-color 0.1s ease;
+      overflow: hidden; /* 이미지가 둥근 모서리를 넘지 않게 */
     }
     .restaurant-card:hover {
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
       transform: translateY(-1px);
       border-color: #111827;
     }
+    /* 리스트용 썸네일 이미지 스타일 */
+    .restaurant-thumb {
+      width: 100%;
+      height: 140px;
+      object-fit: cover; /* 비율 유지하며 꽉 채우기 */
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background-color: #f3f4f6;
+    }
+
     .restaurant-name {
       font-weight: 600;
       margin-bottom: 4px;
@@ -103,6 +114,18 @@
       font-size: 12px;
       color: #6b7280;
     }
+    
+    /* 상세페이지 대표 이미지 스타일 */
+    .detail-hero-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      background-color: #f3f4f6;
+      display: none; /* 이미지가 없으면 숨김 */
+    }
+
     .pill {
       font-size: 11px;
       padding: 2px 6px;
@@ -209,7 +232,6 @@
 </header>
 
 <main>
-  <!-- 왼쪽: 음식점 목록 -->
   <section id="restaurant-list-view">
     <h2>참여 음식점</h2>
     <div class="small" style="margin-bottom:8px;">
@@ -218,11 +240,11 @@
     <div id="restaurant-list"></div>
   </section>
 
-  <!-- 오른쪽: 음식점 상세 + 주문 폼 -->
   <section id="right-panel">
 
-    <!-- 음식점 상세 -->
     <div id="restaurant-detail-view" class="card">
+      <img id="rest-detail-img" class="detail-hero-img" src="" alt="음식점 대표 이미지" />
+
       <h2 id="rest-name">음식점을 먼저 선택해주세요</h2>
       <div id="rest-meta" class="small"></div>
       <div id="rest-notice" class="small" style="margin-top:4px;"></div>
@@ -248,7 +270,6 @@
       </div>
     </div>
 
-    <!-- 주문 폼 -->
     <div class="card">
       <h2>단체 주문 견적서</h2>
       <div class="highlight-box">
@@ -323,7 +344,6 @@
   </section>
 </main>
 
-<!-- Supabase JS (CDN) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
@@ -331,7 +351,7 @@
   const SUPABASE_URL = "https://owfljerawghlyswtylxs.supabase.co";   // ← 네 프로젝트 URL
   const SUPABASE_KEY = "sb_publishable_izKjuHR5y7O-xJANpPrS_A_ScU3hLrO";          // ← anon 또는 publishable 키
 
-  // CDN으로 불러온 전역 객체: supabase.createClient(...) 사용 :contentReference[oaicite:4]{index=4}
+  // CDN으로 불러온 전역 객체: supabase.createClient(...) 사용
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // ===== 1. 상태 저장 =====
@@ -340,235 +360,257 @@
     cart: [] // {restaurantId, menuId, name, qty, price}
   };
 
-  // ===== 2. 음식점 데이터 (여기만 수정하면 가게 정보 바뀜) =====
-  // ===== 2. 음식점 데이터 (discountDesc → note 변경) =====
-const restaurants = [
-  {
-    id: 'r1',
-    name: '본죽',
-    meta: '도시락/죽 · 100인 이상 · 3~4일 전 예약',
-    tags: ['한식', '속편한 식사', '비빔밥'],
-    notice: '포장/배달 가능 여부 확인 필요',
-    availability: [],
-    menus: [
-      { id: 'm1_1', name: '6가지나물비빔밥', price: 10500, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm1_2', name: '제육볶음나물비빔밥', price: 11500, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm1_3', name: '전복내장해물비빔밥', price: 15500, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm1_4', name: '소불고기나물비빔밥', price: 12500, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm1_5', name: '고추장육회비빔밥', price: 13000, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm1_6', name: '본죽장조림버터비빔밥', price: 12000, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm1_7', name: '낙지김치비빔밥', price: 12500, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm1_8', name: '불고기낙지비빔밥', price: 13000, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm1_9', name: '신짬뽕비빔밥', price: 12500, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm1_10', name: '참치야채비빔밥', price: 11500, minQty: 10, maxQty: 100, note: '' }
-    ]
-  },
-  {
-    id: 'r2',
-    name: '비비당',
-    meta: '비빔밥 · 100인 이상 · 2일 전 예약',
-    tags: ['샐러드비빔밥(샐비)', '산채비빔밥', '건강식'],
-    notice: '10~20인분 배달무료 / 100인분 이상 금액 협의',
-    availability: [],
-    menus: [
-      { id: 'm2_1', name: '불맛 쭈꾸미삼겹 산채', price: 9900, minQty: 10, maxQty: 200, note: '100인↑ 협의' },
-      { id: 'm2_2', name: '불 닭발 샐비', price: 11400, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_3', name: '큐브 연어 샐비', price: 10500, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_4', name: '특선 육회 샐비', price: 10500, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_5', name: '향긋 꼬막 비빔밥', price: 10500, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_6', name: '활력 장어 샐비', price: 11400, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_7', name: '특제 소불고기 샐비', price: 10500, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_8', name: '매콤 쭈꾸미 샐비', price: 10500, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_9', name: '달콤 불고기 샐비', price: 9000, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_10', name: '매콤 제육 샐비', price: 9000, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_11', name: '훈제 오리 샐비', price: 9000, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_12', name: '그릴 스팸 샐비', price: 8000, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_13', name: '참치 마요 샐비', price: 8000, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_14', name: '수비드 닭가슴살 샐비', price: 8000, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_15', name: '샐러드 비빔밥(기본)', price: 7500, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_16', name: '활력 장어 산채', price: 12300, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_17', name: '특제 소불고기 산채', price: 10500, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_18', name: '매콤 쭈꾸미 산채', price: 10500, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_19', name: '달콤 불고기 산채', price: 9000, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_20', name: '매콤 제육 산채', price: 9000, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_21', name: '훈제 오리 산채', price: 9000, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_22', name: '그릴 스팸 산채', price: 8000, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_23', name: '참치 마요 산채', price: 8000, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_24', name: '수비드 닭가슴살 산채', price: 8000, minQty: 10, maxQty: 200, note: '' },
-      { id: 'm2_25', name: '산채 비빔밥(기본)', price: 7500, minQty: 10, maxQty: 200, note: '' }
-    ]
-  },
-  {
-    id: 'r3',
-    name: '고래돈가스',
-    meta: '돈가스 · 100개(협의) · 2일 전 예약',
-    tags: ['돈가스 전문', '픽업 전용'],
-    notice: '1~2시 픽업 불가 / 50개 이상 사전 예약 필수',
-    availability: [],
-    menus: [
-      { id: 'm3_1', name: '돈가스', price: 12000, minQty: 10, maxQty: 100, note: '' }
-    ]
-  },
-  {
-    id: 'r4',
-    name: '밀플랜비',
-    meta: '샌드위치/부리또 · 100개(협의) · 5일 전 예약',
-    tags: ['핫도그', '부리또', '간편식'],
-    notice: '대량 주문 시 사장님 컨펌 후 할인 가능',
-    availability: [],
-    menus: [
-      { id: 'm4_1', name: '수제 소시지 핫도그', price: 5000, minQty: 20, maxQty: 150, note: '' },
-      { id: 'm4_2', name: '기본 핫도그', price: 7000, minQty: 20, maxQty: 150, note: '' },
-      { id: 'm4_3', name: '감자 핫도그', price: 7500, minQty: 20, maxQty: 150, note: '' },
-      { id: 'm4_4', name: '고구마 핫도그', price: 7500, minQty: 20, maxQty: 150, note: '' },
-      { id: 'm4_5', name: '미트볼 감자 부리또(기본)', price: 7000, minQty: 20, maxQty: 150, note: '' },
-      { id: 'm4_6', name: '치킨라이스 부리또(기본)', price: 7500, minQty: 20, maxQty: 150, note: '' },
-      { id: 'm4_7', name: '치킨감자 부리또(기본)', price: 7500, minQty: 20, maxQty: 150, note: '' },
-      { id: 'm4_8', name: '소고기라이스 부리또(기본)', price: 7000, minQty: 20, maxQty: 150, note: '' },
-      { id: 'm4_9', name: '소고기감자 부리또(기본)', price: 7000, minQty: 20, maxQty: 150, note: '' },
-      { id: 'm4_10', name: '미트볼라이스', price: 8000, minQty: 20, maxQty: 150, note: '' },
-      { id: 'm4_11', name: '새우감자 부리또(기본)', price: 7000, minQty: 20, maxQty: 150, note: '' }
-    ]
-  },
-  {
-    id: 'r5',
-    name: '프로마치',
-    meta: '샌드위치/파니니 · 100개 · 3~7일 전',
-    tags: ['파니니', '샌드위치', '비건옵션'],
-    notice: '최소 3일 전 예약, 대량은 1주일 전',
-    availability: [],
-    menus: [
-      { id: 'm5_1', name: '페스토 치킨 파니니', price: 10400, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm5_2', name: '포크 파스트라미 파니니', price: 10400, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm5_3', name: '커리 치킨 파니니', price: 10300, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm5_4', name: '멕시칸 타코 파니니', price: 10900, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm5_5', name: '페스토치킨 샌드위치', price: 10400, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm5_6', name: '포크 페스트라미 샌드위치', price: 10400, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm5_7', name: '베지테리안 딜라이트 샌드위치', price: 10300, minQty: 10, maxQty: 100, note: '비건 메뉴' },
-      { id: 'm5_8', name: '이탈리안 콤보 샌드위치', price: 10300, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm5_9', name: '커리 치킨 샌드위치', price: 10300, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm5_10', name: '멕시칸 타코 샌드위치', price: 10900, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm5_11', name: '노르웨이안 연어 샌드위치', price: 12700, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm5_12', name: '리코타 치즈 샐러드', price: 9700, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm5_13', name: '치킨 시저 샐러드', price: 9400, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm5_14', name: '치즈보드 샐러드', price: 10400, minQty: 10, maxQty: 100, note: '' }
-    ]
-  },
-  {
-    id: 'r6',
-    name: '치비치비',
-    meta: '양식/스테이크 · 50개(협의) · 7일 전',
-    tags: ['치킨스테이크', '양식'],
-    notice: '포장시 음식이 식을 수 있음 / 보통맛·매운맛 선택 가능',
-    availability: [],
-    menus: [
-      { id: 'm6_1', name: '간장 스테이크', price: 11500, minQty: 10, maxQty: 50, note: '보통맛/매운맛' },
-      { id: 'm6_2', name: '양념 스테이크', price: 11500, minQty: 10, maxQty: 50, note: '보통맛/매운맛' },
-      { id: 'm6_3', name: '칠리 스테이크', price: 11500, minQty: 10, maxQty: 50, note: '보통맛/매운맛' },
-      { id: 'm6_4', name: '커리 스테이크', price: 11500, minQty: 10, maxQty: 50, note: '보통맛/매운맛' },
-      { id: 'm6_5', name: '치비 스테이크', price: 10500, minQty: 10, maxQty: 50, note: '' }
-    ]
-  },
-  {
-    id: 'r7',
-    name: '스시미소',
-    meta: '일식 · 100인 이상 · 당일~1일 전',
-    tags: ['초밥', '롤', '고급 도시락'],
-    notice: '배달은 전날 예약, 오후 주문시 당일 가능 협의',
-    availability: [],
-    menus: [
-      { id: 'm7_1', name: '미소초밥모둠(10p)', price: 15000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_2', name: '특초밥모둠(12p)', price: 18000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_3', name: '스페셜초밥(12p)', price: 25000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_4', name: '연어초밥(10p)', price: 20000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_5', name: '광어초밥(10p)', price: 20000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_6', name: '연어 초밥(5p)', price: 11000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_7', name: '광어 초밥(5p)', price: 11000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_8', name: '참치 초밥(5p)', price: 10000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_9', name: '황새치 초밥(5p)', price: 10000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_10', name: '소고기 초밥(5p)', price: 10000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_11', name: '도미 초밥(5p)', price: 15000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_12', name: '장어 초밥(5p)', price: 16000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_13', name: '혼마구로 초밥(5p)', price: 20000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_14', name: '초새우 초밥(5p)', price: 8000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_15', name: '생새우 초밥(5p)', price: 8000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_16', name: '간장새우 초밥(5p)', price: 9000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_17', name: '연어갈릭 아부리(5p)', price: 12000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_18', name: '참치갈릭 아부리(5p)', price: 11000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_19', name: '생새우갈릭 아부리(5p)', price: 8000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_20', name: '계란 초밥(5p)', price: 7500, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_21', name: '유부 초밥(5p)', price: 7500, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_22', name: '새우튀김롤', price: 15000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_23', name: '연어롤', price: 15000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_24', name: '간장새우알밥', price: 13000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_25', name: '불고기덮밥', price: 15000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm7_26', name: '회덮밥', price: 16000, minQty: 10, maxQty: 150, note: '' }
-    ]
-  },
-  {
-    id: 'r8',
-    name: '오봉집',
-    meta: '한식/볶음 · 100인 이상 · 1일 전',
-    tags: ['직화볶음', '보쌈', '점심할인'],
-    notice: '11~15시 점심시간 가격 할인 적용 가능',
-    availability: [],
-    menus: [
-      { id: 'm8_1', name: '직화제육볶음', price: 11000, minQty: 10, maxQty: 150, note: '점심시간 10,000원' },
-      { id: 'm8_2', name: '직화낙지볶음', price: 14000, minQty: 10, maxQty: 150, note: '점심시간 12,000원' },
-      { id: 'm8_3', name: '직화제낙볶음', price: 14000, minQty: 10, maxQty: 150, note: '점심시간 12,000원' },
-      { id: 'm8_4', name: '보쌈정식', price: 10000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm8_5', name: '왕만두(김치/고기/반반)', price: 6000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm8_6', name: '돼지불고기', price: 9000, minQty: 10, maxQty: 150, note: '' }
-    ]
-  },
-  {
-    id: 'r9',
-    name: '우승식당',
-    meta: '한식 · 100개(협의) · 당일~1일 전',
-    tags: ['제육', '두루치기', '가성비'],
-    notice: '50개 이상 주문 시 서비스 협의',
-    availability: [],
-    menus: [
-      { id: 'm9_1', name: '제육볶음', price: 9000, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm9_2', name: '쭈육볶음', price: 9500, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm9_3', name: '쭈꾸미볶음', price: 11000, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm9_4', name: '오리지널두루치기', price: 9000, minQty: 10, maxQty: 100, note: '' }
-    ]
-  },
-  {
-    id: 'r10',
-    name: '이공김밥',
-    meta: '분식 · 100인 이상 · 1~3일 전',
-    tags: ['김밥', '돈가스', '가성비'],
-    notice: '오전 일찍 픽업 가능, 서비스 제공',
-    availability: [],
-    menus: [
-      { id: 'm10_1', name: '이공김밥', price: 3500, minQty: 20, maxQty: 300, note: '' },
-      { id: 'm10_2', name: '참치폭탄김밥', price: 6000, minQty: 20, maxQty: 300, note: '' },
-      { id: 'm10_3', name: '더블치즈김밥', price: 4500, minQty: 20, maxQty: 300, note: '' },
-      { id: 'm10_4', name: '고추김밥', price: 4500, minQty: 20, maxQty: 300, note: '' },
-      { id: 'm10_5', name: '김치김밥', price: 4500, minQty: 20, maxQty: 300, note: '' },
-      { id: 'm10_6', name: '샐러드김밥', price: 4500, minQty: 20, maxQty: 300, note: '' },
-      { id: 'm10_7', name: '작은참치김밥', price: 5000, minQty: 20, maxQty: 300, note: '' },
-      { id: 'm10_8', name: '참치김치김밥', price: 6000, minQty: 20, maxQty: 300, note: '' },
-      { id: 'm10_9', name: '콘참치김밥', price: 6000, minQty: 20, maxQty: 300, note: '' },
-      { id: 'm10_10', name: '제육김밥', price: 6000, minQty: 20, maxQty: 300, note: '' },
-      { id: 'm10_11', name: '갈비김밥', price: 6000, minQty: 20, maxQty: 300, note: '' },
-      { id: 'm10_12', name: '돈까스김밥', price: 6000, minQty: 20, maxQty: 300, note: '' },
-      { id: 'm10_13', name: '야채돈가스김밥', price: 6500, minQty: 20, maxQty: 300, note: '' },
-      { id: 'm10_14', name: '참치누드김밥', price: 9000, minQty: 20, maxQty: 300, note: '' },
-      { id: 'm10_15', name: '고기만두(8개)', price: 5500, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm10_16', name: '김치만두(8개)', price: 5500, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm10_17', name: '물만두(20개)', price: 5500, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm10_18', name: '참치김치볶음밥', price: 7500, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm10_19', name: '스팸김치볶음밥', price: 7500, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm10_20', name: '제육덮밥', price: 8000, minQty: 10, maxQty: 150, note: '' },
-      { id: 'm10_21', name: '치즈돈가스', price: 8000, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm10_22', name: '고구마돈가스', price: 7500, minQty: 10, maxQty: 100, note: '' },
-      { id: 'm10_23', name: '등심돈가스', price: 7500, minQty: 10, maxQty: 100, note: '' }
-    ]
-  }
-];
+  // ===== 2. 음식점 데이터 (imageUrl 추가됨) =====
+  // ※ 실제 사진 URL이 생기면 'imageUrl' 부분을 수정하세요.
+  const restaurants = [
+    {
+      id: 'r1',
+      name: '본죽',
+      imageUrl: 'https://placehold.co/600x400/orange/white?text=Bonjuk', // 예시 이미지
+      meta: '도시락/죽 · 100인 이상 · 3~4일 전 예약',
+      tags: ['한식', '속편한 식사', '비빔밥'],
+      notice: '포장/배달 가능 여부 확인 필요',
+      availability: [],
+      menus: [
+        { id: 'm1_1', name: '6가지나물비빔밥', price: 10500, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm1_2', name: '제육볶음나물비빔밥', price: 11500, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm1_3', name: '전복내장해물비빔밥', price: 15500, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm1_4', name: '소불고기나물비빔밥', price: 12500, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm1_5', name: '고추장육회비빔밥', price: 13000, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm1_6', name: '본죽장조림버터비빔밥', price: 12000, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm1_7', name: '낙지김치비빔밥', price: 12500, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm1_8', name: '불고기낙지비빔밥', price: 13000, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm1_9', name: '신짬뽕비빔밥', price: 12500, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm1_10', name: '참치야채비빔밥', price: 11500, minQty: 10, maxQty: 100, note: '' }
+      ]
+    },
+    {
+      id: 'r2',
+      name: '비비당',
+      imageUrl: 'https://placehold.co/600x400/green/white?text=Bibidang',
+      meta: '비빔밥 · 100인 이상 · 2일 전 예약',
+      tags: ['샐러드비빔밥(샐비)', '산채비빔밥', '건강식'],
+      notice: '10~20인분 배달무료 / 100인분 이상 금액 협의',
+      availability: [],
+      menus: [
+        { id: 'm2_1', name: '불맛 쭈꾸미삼겹 산채', price: 9900, minQty: 10, maxQty: 200, note: '100인↑ 협의' },
+        { id: 'm2_2', name: '불 닭발 샐비', price: 11400, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_3', name: '큐브 연어 샐비', price: 10500, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_4', name: '특선 육회 샐비', price: 10500, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_5', name: '향긋 꼬막 비빔밥', price: 10500, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_6', name: '활력 장어 샐비', price: 11400, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_7', name: '특제 소불고기 샐비', price: 10500, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_8', name: '매콤 쭈꾸미 샐비', price: 10500, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_9', name: '달콤 불고기 샐비', price: 9000, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_10', name: '매콤 제육 샐비', price: 9000, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_11', name: '훈제 오리 샐비', price: 9000, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_12', name: '그릴 스팸 샐비', price: 8000, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_13', name: '참치 마요 샐비', price: 8000, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_14', name: '수비드 닭가슴살 샐비', price: 8000, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_15', name: '샐러드 비빔밥(기본)', price: 7500, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_16', name: '활력 장어 산채', price: 12300, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_17', name: '특제 소불고기 산채', price: 10500, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_18', name: '매콤 쭈꾸미 산채', price: 10500, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_19', name: '달콤 불고기 산채', price: 9000, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_20', name: '매콤 제육 산채', price: 9000, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_21', name: '훈제 오리 산채', price: 9000, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_22', name: '그릴 스팸 산채', price: 8000, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_23', name: '참치 마요 산채', price: 8000, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_24', name: '수비드 닭가슴살 산채', price: 8000, minQty: 10, maxQty: 200, note: '' },
+        { id: 'm2_25', name: '산채 비빔밥(기본)', price: 7500, minQty: 10, maxQty: 200, note: '' }
+      ]
+    },
+    {
+      id: 'r3',
+      name: '고래돈가스',
+      imageUrl: 'https://placehold.co/600x400/brown/white?text=Cutlet',
+      meta: '돈가스 · 100개(협의) · 2일 전 예약',
+      tags: ['돈가스 전문', '픽업 전용'],
+      notice: '1~2시 픽업 불가 / 50개 이상 사전 예약 필수',
+      availability: [],
+      menus: [
+        { id: 'm3_1', name: '돈가스', price: 12000, minQty: 10, maxQty: 100, note: '' }
+      ]
+    },
+    {
+      id: 'r4',
+      name: '밀플랜비',
+      imageUrl: 'https://placehold.co/600x400/red/white?text=MealPlanB',
+      meta: '샌드위치/부리또 · 100개(협의) · 5일 전 예약',
+      tags: ['핫도그', '부리또', '간편식'],
+      notice: '대량 주문 시 사장님 컨펌 후 할인 가능',
+      availability: [],
+      menus: [
+        { id: 'm4_1', name: '수제 소시지 핫도그', price: 5000, minQty: 20, maxQty: 150, note: '' },
+        { id: 'm4_2', name: '기본 핫도그', price: 7000, minQty: 20, maxQty: 150, note: '' },
+        { id: 'm4_3', name: '감자 핫도그', price: 7500, minQty: 20, maxQty: 150, note: '' },
+        { id: 'm4_4', name: '고구마 핫도그', price: 7500, minQty: 20, maxQty: 150, note: '' },
+        { id: 'm4_5', name: '미트볼 감자 부리또(기본)', price: 7000, minQty: 20, maxQty: 150, note: '' },
+        { id: 'm4_6', name: '치킨라이스 부리또(기본)', price: 7500, minQty: 20, maxQty: 150, note: '' },
+        { id: 'm4_7', name: '치킨감자 부리또(기본)', price: 7500, minQty: 20, maxQty: 150, note: '' },
+        { id: 'm4_8', name: '소고기라이스 부리또(기본)', price: 7000, minQty: 20, maxQty: 150, note: '' },
+        { id: 'm4_9', name: '소고기감자 부리또(기본)', price: 7000, minQty: 20, maxQty: 150, note: '' },
+        { id: 'm4_10', name: '미트볼라이스', price: 8000, minQty: 20, maxQty: 150, note: '' },
+        { id: 'm4_11', name: '새우감자 부리또(기본)', price: 7000, minQty: 20, maxQty: 150, note: '' }
+      ]
+    },
+    {
+      id: 'r5',
+      name: '프로마치',
+      imageUrl: 'https://placehold.co/600x400/yellow/black?text=Fromachi',
+      meta: '샌드위치/파니니 · 100개 · 3~7일 전',
+      tags: ['파니니', '샌드위치', '비건옵션'],
+      notice: '최소 3일 전 예약, 대량은 1주일 전',
+      availability: [],
+      menus: [
+        { id: 'm5_1', name: '페스토 치킨 파니니', price: 10400, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm5_2', name: '포크 파스트라미 파니니', price: 10400, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm5_3', name: '커리 치킨 파니니', price: 10300, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm5_4', name: '멕시칸 타코 파니니', price: 10900, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm5_5', name: '페스토치킨 샌드위치', price: 10400, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm5_6', name: '포크 페스트라미 샌드위치', price: 10400, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm5_7', name: '베지테리안 딜라이트 샌드위치', price: 10300, minQty: 10, maxQty: 100, note: '비건 메뉴' },
+        { id: 'm5_8', name: '이탈리안 콤보 샌드위치', price: 10300, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm5_9', name: '커리 치킨 샌드위치', price: 10300, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm5_10', name: '멕시칸 타코 샌드위치', price: 10900, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm5_11', name: '노르웨이안 연어 샌드위치', price: 12700, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm5_12', name: '리코타 치즈 샐러드', price: 9700, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm5_13', name: '치킨 시저 샐러드', price: 9400, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm5_14', name: '치즈보드 샐러드', price: 10400, minQty: 10, maxQty: 100, note: '' }
+      ]
+    },
+    {
+      id: 'r6',
+      name: '치비치비',
+      imageUrl: 'https://placehold.co/600x400/black/white?text=Chibi',
+      meta: '양식/스테이크 · 50개(협의) · 7일 전',
+      tags: ['치킨스테이크', '양식'],
+      notice: '포장시 음식이 식을 수 있음 / 보통맛·매운맛 선택 가능',
+      availability: [],
+      menus: [
+        { id: 'm6_1', name: '간장 스테이크', price: 11500, minQty: 10, maxQty: 50, note: '보통맛/매운맛' },
+        { id: 'm6_2', name: '양념 스테이크', price: 11500, minQty: 10, maxQty: 50, note: '보통맛/매운맛' },
+        { id: 'm6_3', name: '칠리 스테이크', price: 11500, minQty: 10, maxQty: 50, note: '보통맛/매운맛' },
+        { id: 'm6_4', name: '커리 스테이크', price: 11500, minQty: 10, maxQty: 50, note: '보통맛/매운맛' },
+        { id: 'm6_5', name: '치비 스테이크', price: 10500, minQty: 10, maxQty: 50, note: '' }
+      ]
+    },
+    {
+      id: 'r7',
+      name: '스시미소',
+      imageUrl: 'https://placehold.co/600x400/blue/white?text=Sushi',
+      meta: '일식 · 100인 이상 · 당일~1일 전',
+      tags: ['초밥', '롤', '고급 도시락'],
+      notice: '배달은 전날 예약, 오후 주문시 당일 가능 협의',
+      availability: [],
+      menus: [
+        { id: 'm7_1', name: '미소초밥모둠(10p)', price: 15000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_2', name: '특초밥모둠(12p)', price: 18000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_3', name: '스페셜초밥(12p)', price: 25000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_4', name: '연어초밥(10p)', price: 20000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_5', name: '광어초밥(10p)', price: 20000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_6', name: '연어 초밥(5p)', price: 11000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_7', name: '광어 초밥(5p)', price: 11000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_8', name: '참치 초밥(5p)', price: 10000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_9', name: '황새치 초밥(5p)', price: 10000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_10', name: '소고기 초밥(5p)', price: 10000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_11', name: '도미 초밥(5p)', price: 15000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_12', name: '장어 초밥(5p)', price: 16000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_13', name: '혼마구로 초밥(5p)', price: 20000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_14', name: '초새우 초밥(5p)', price: 8000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_15', name: '생새우 초밥(5p)', price: 8000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_16', name: '간장새우 초밥(5p)', price: 9000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_17', name: '연어갈릭 아부리(5p)', price: 12000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_18', name: '참치갈릭 아부리(5p)', price: 11000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_19', name: '생새우갈릭 아부리(5p)', price: 8000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_20', name: '계란 초밥(5p)', price: 7500, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_21', name: '유부 초밥(5p)', price: 7500, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_22', name: '새우튀김롤', price: 15000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_23', name: '연어롤', price: 15000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_24', name: '간장새우알밥', price: 13000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_25', name: '불고기덮밥', price: 15000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm7_26', name: '회덮밥', price: 16000, minQty: 10, maxQty: 150, note: '' }
+      ]
+    },
+    {
+      id: 'r8',
+      name: '오봉집',
+      imageUrl: 'https://placehold.co/600x400/purple/white?text=Obong',
+      meta: '한식/볶음 · 100인 이상 · 1일 전',
+      tags: ['직화볶음', '보쌈', '점심할인'],
+      notice: '11~15시 점심시간 가격 할인 적용 가능',
+      availability: [],
+      menus: [
+        { id: 'm8_1', name: '직화제육볶음', price: 11000, minQty: 10, maxQty: 150, note: '점심시간 10,000원' },
+        { id: 'm8_2', name: '직화낙지볶음', price: 14000, minQty: 10, maxQty: 150, note: '점심시간 12,000원' },
+        { id: 'm8_3', name: '직화제낙볶음', price: 14000, minQty: 10, maxQty: 150, note: '점심시간 12,000원' },
+        { id: 'm8_4', name: '보쌈정식', price: 10000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm8_5', name: '왕만두(김치/고기/반반)', price: 6000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm8_6', name: '돼지불고기', price: 9000, minQty: 10, maxQty: 150, note: '' }
+      ]
+    },
+    {
+      id: 'r9',
+      name: '우승식당',
+      imageUrl: 'https://placehold.co/600x400/gray/white?text=Wooseung',
+      meta: '한식 · 100개(협의) · 당일~1일 전',
+      tags: ['제육', '두루치기', '가성비'],
+      notice: '50개 이상 주문 시 서비스 협의',
+      availability: [],
+      menus: [
+        { id: 'm9_1', name: '제육볶음', price: 9000, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm9_2', name: '쭈육볶음', price: 9500, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm9_3', name: '쭈꾸미볶음', price: 11000, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm9_4', name: '오리지널두루치기', price: 9000, minQty: 10, maxQty: 100, note: '' }
+      ]
+    },
+    {
+      id: 'r10',
+      name: '이공김밥',
+      imageUrl: 'https://placehold.co/600x400/pink/white?text=Kimbap',
+      meta: '분식 · 100인 이상 · 1~3일 전',
+      tags: ['김밥', '돈가스', '가성비'],
+      notice: '오전 일찍 픽업 가능, 서비스 제공',
+      availability: [],
+      menus: [
+        { id: 'm10_1', name: '이공김밥', price: 3500, minQty: 20, maxQty: 300, note: '' },
+        { id: 'm10_2', name: '참치폭탄김밥', price: 6000, minQty: 20, maxQty: 300, note: '' },
+        { id: 'm10_3', name: '더블치즈김밥', price: 4500, minQty: 20, maxQty: 300, note: '' },
+        { id: 'm10_4', name: '고추김밥', price: 4500, minQty: 20, maxQty: 300, note: '' },
+        { id: 'm10_5', name: '김치김밥', price: 4500, minQty: 20, maxQty: 300, note: '' },
+        { id: 'm10_6', name: '샐러드김밥', price: 4500, minQty: 20, maxQty: 300, note: '' },
+        { id: 'm10_7', name: '작은참치김밥', price: 5000, minQty: 20, maxQty: 300, note: '' },
+        { id: 'm10_8', name: '참치김치김밥', price: 6000, minQty: 20, maxQty: 300, note: '' },
+        { id: 'm10_9', name: '콘참치김밥', price: 6000, minQty: 20, maxQty: 300, note: '' },
+        { id: 'm10_10', name: '제육김밥', price: 6000, minQty: 20, maxQty: 300, note: '' },
+        { id: 'm10_11', name: '갈비김밥', price: 6000, minQty: 20, maxQty: 300, note: '' },
+        { id: 'm10_12', name: '돈까스김밥', price: 6000, minQty: 20, maxQty: 300, note: '' },
+        { id: 'm10_13', name: '야채돈가스김밥', price: 6500, minQty: 20, maxQty: 300, note: '' },
+        { id: 'm10_14', name: '참치누드김밥', price: 9000, minQty: 20, maxQty: 300, note: '' },
+        { id: 'm10_15', name: '고기만두(8개)', price: 5500, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm10_16', name: '김치만두(8개)', price: 5500, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm10_17', name: '물만두(20개)', price: 5500, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm10_18', name: '참치김치볶음밥', price: 7500, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm10_19', name: '스팸김치볶음밥', price: 7500, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm10_20', name: '제육덮밥', price: 8000, minQty: 10, maxQty: 150, note: '' },
+        { id: 'm10_21', name: '치즈돈가스', price: 8000, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm10_22', name: '고구마돈가스', price: 7500, minQty: 10, maxQty: 100, note: '' },
+        { id: 'm10_23', name: '등심돈가스', price: 7500, minQty: 10, maxQty: 100, note: '' }
+      ]
+    },
+    {
+      id: 'r11',
+      name: '철남',
+      imageUrl: 'https://placehold.co/600x400/red/white?text=CheolNam',
+      meta: '두루치기 · 100인 이상 · 픽업 전용',
+      tags: ['밥반찬 제공', '할인 가능', '밥 포함'],
+      notice: '50개 기준 개당 500원 할인 (사장님 상의 필요)',
+      availability: [],
+      menus: [
+        { id: 'm11_1', name: '두루치기 도시락', price: 8000, minQty: 10, maxQty: 200, note: '50개↑ 개당 500원 할인' }
+      ]
+    }
+  ];
   // ===== 3. 렌더링 함수들 =====
   function init() {
     renderRestaurantList();
@@ -594,6 +636,15 @@ const restaurants = [
         state.cart = state.cart.filter(item => item.restaurantId === r.id);
         renderCartSummary();
       };
+
+      // [추가됨] 왼쪽 목록 썸네일 이미지
+      if (r.imageUrl) {
+        const img = document.createElement('img');
+        img.className = 'restaurant-thumb';
+        img.src = r.imageUrl;
+        img.alt = r.name + ' 이미지';
+        card.appendChild(img);
+      }
 
       const nameDiv = document.createElement('div');
       nameDiv.className = 'restaurant-name';
@@ -630,6 +681,7 @@ const restaurants = [
     const noticeEl = document.getElementById('rest-notice');
     const availContainer = document.getElementById('availability-container');
     const menuBody = document.getElementById('menu-body');
+    const detailImgEl = document.getElementById('rest-detail-img'); // [추가됨]
 
     if (!rest) {
       nameEl.textContent = '음식점을 먼저 선택해주세요';
@@ -637,7 +689,16 @@ const restaurants = [
       noticeEl.textContent = '';
       availContainer.textContent = '왼쪽에서 음식점을 선택하면 예약 가능 시간이 표시됩니다.';
       menuBody.innerHTML = '';
+      detailImgEl.style.display = 'none'; // 이미지 숨김
       return;
+    }
+
+    // [추가됨] 상세페이지 대표 이미지 처리
+    if (rest.imageUrl) {
+      detailImgEl.src = rest.imageUrl;
+      detailImgEl.style.display = 'block';
+    } else {
+      detailImgEl.style.display = 'none';
     }
 
     nameEl.textContent = rest.name;
