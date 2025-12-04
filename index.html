@@ -420,9 +420,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-  // ===== 0. Supabase 연결 (여기만 네 프로젝트 값으로 바꾸기!) =====
-  const SUPABASE_URL = "https://owfljerawghlyswtylxs.supabase.co"; 
-  const SUPABASE_KEY = "sb_publishable_izKjuHR5y7O-xJANpPrS_A_ScU3hLrO"; 
+  // ===== 0. Supabase 연결 =====
+  const SUPABASE_URL = "https://owfljerawghlyswtylxs.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_izKjuHR5y7O-xJANpPrS_A_ScU3hLrO";
 
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -431,263 +431,216 @@
     selectedRestaurantId: null,
     cart: [] // {restaurantId, menuId, name, qty, price}
   };
-// ===== A. 기존 식당별 이미지/메타/태그/공지(정적 정보) =====
-const STATIC_RESTAURANT_META = {
-  '본죽': {
-    images: ['res_Photo/bonjook1.png'],
-    meta: '비빔밥/죽 · 100개 이상 · 3~4일 전 예약',
-    tags: ['한식', '속편한 식사', '비빔밥'],
-    notice: '배달, 픽업 둘다 가능',
-    availability: []
-  },
-  '비비당': {
-    images: [
-      'res_Photo/bibidang1.png',
-      'res_Photo/bibidang2.png',
-      'res_Photo/bibidang3.png',
-      'res_Photo/bibidang4.png',
-      'res_Photo/bibidang5.png'
-    ],
-    meta: '비빔밥 · 100개 이상 · 2일 전 예약',
-    tags: ['샐러드비빔밥(샐비)', '산채비빔밥', '건강식'],
-    notice: '10~20인분 배달무료 / 100인분 이상 금액 협의 / 월요일은 11시 이후만 가능',
-    availability: []
-  },
-  '고래돈가스': {
-    images: ['res_Photo/goraedon.png'],
-    meta: '돈가스 · 100개(협의) · 2일 전 예약',
-    tags: ['돈가스 전문', '픽업 전용'],
-    notice: '픽업만 가능 / 1~2시 불가',
-    availability: []
-  },
-  '밀플랜비': {
-    images: [
-      'res_Photo/mealplanb1.png',
-      'res_Photo/mealplanb2.png',
-      'res_Photo/mealplanb3.png'
-    ],
-    meta: '샌드위치/부리또 · 100개(협의) · 5일 전 예약',
-    tags: ['핫도그', '부리또', '간편식'],
-    notice: '배달, 픽업 둘다 가능 / 100개 이하면 서비스',
-    availability: []
-  },
-  '프로마치': {
-    images: [
-      'res_Photo/froma1.png',
-      'res_Photo/froma2.png',
-      'res_Photo/froma3.png',
-      'res_Photo/froma4.png'
-    ],
-    meta: '샌드위치/파니니 · 100개 · 3~7일 전 예약',
-    tags: ['파니니', '샌드위치', '비건옵션'],
-    notice: '배달, 픽업 둘다 가능 / 100개 기준 1주일 전 예약 필요',
-    availability: []
-  },
-  '치비치비': {
-    images: ['res_Photo/chibechibe.jpeg'],
-    meta: '양식/스테이크 · 50개(협의) · 7일 전 예약',
-    tags: ['치킨스테이크', '양식'],
-    notice: '픽업만 가능 / 포장시 음식이 식을 수 있음 / 보통맛·매운맛 선택 가능',
-    availability: []
-  },
-  '스시미소': {
-    images: ['res_Photo/sushimiso.png'],
-    meta: '일식 · 100개 이상 · 당일~1일 전 예약',
-    tags: ['초밥', '롤', '고급 도시락'],
-    notice: '배달은 전날 예약',
-    availability: []
-  },
-  '오봉집': {
-    images: ['res_Photo/obong.png'],
-    meta: '한식/볶음 · 100개 이상 · 1일 전 예약',
-    tags: ['직화볶음', '보쌈', '점심할인'],
-    notice: '픽업만 가능 / 11~15시 점심특선 가격 적용 가능',
-    availability: []
-  },
-  '우승식당': {
-    images: ['res_Photo/wooseng.png'],
-    meta: '한식 · 100개(협의) · 당일~1일 전 예약',
-    tags: ['제육', '두루치기', '가성비'],
-    notice: '50개 이상 주문 시 서비스 제공 / 고기만 채운 도시락 형태',
-    availability: []
-  },
-  '이공김밥': {
-    images: ['res_Photo/eegong.png'],
-    meta: '분식 · 100개 이상 · 1~3일 전 예약',
-    tags: ['김밥', '돈가스', '가성비'],
-    notice: '배달 협의 가능',
-    availability: []
-  }
-};
 
-// “원하는 메뉴 찾아드려요” 특수 식당 (DB 말고 프론트에서 계속 관리)
-const AGENT_RESTAURANT = {
-  id: 'r11',
-  name: '더 다양한 메뉴를 원하신다면 알려주세요',
-  images: ['res_Photo/agentMode.png'],
-  meta: '희망하시는 메뉴에 맞춰 최적의 식당을 직접 찾아드립니다',
-  tags: ['알아서 해드립니다'],
-  notice: '조건에 맞는 식당이 없을 경우 가장 적합한 대안을 찾아, 최대 익일 18시 이전까지 연락드립니다.',
-  availability: [],
-  menus: [
-    {
-      id: 'm11_1',
-      name: '원하는 메뉴를 찾아드려요. 추가요청사항에 카테고리, 개수, 예산, 요청사항을 적어주세요',
-      price: 0,
-      minQty: 1,
-      maxQty: 999,
-      note: ''
+  // ===== A. 기존 식당별 이미지/메타/태그/공지(정적 정보) =====
+  const STATIC_RESTAURANT_META = {
+    '본죽': {
+      images: ['res_Photo/bonjook1.png'],
+      meta: '비빔밥/죽 · 100개 이상 · 3~4일 전 예약',
+      tags: ['한식', '속편한 식사', '비빔밥'],
+      notice: '배달, 픽업 둘다 가능',
+      availability: []
+    },
+    '비비당': {
+      images: [
+        'res_Photo/bibidang1.png',
+        'res_Photo/bibidang2.png',
+        'res_Photo/bibidang3.png',
+        'res_Photo/bibidang4.png',
+        'res_Photo/bibidang5.png'
+      ],
+      meta: '비빔밥 · 100개 이상 · 2일 전 예약',
+      tags: ['샐러드비빔밥(샐비)', '산채비빔밥', '건강식'],
+      notice: '10~20인분 배달무료 / 100인분 이상 금액 협의 / 월요일은 11시 이후만 가능',
+      availability: []
+    },
+    '고래돈가스': {
+      images: ['res_Photo/goraedon.png'],
+      meta: '돈가스 · 100개(협의) · 2일 전 예약',
+      tags: ['돈가스 전문', '픽업 전용'],
+      notice: '픽업만 가능 / 1~2시 불가',
+      availability: []
+    },
+    '밀플랜비': {
+      images: [
+        'res_Photo/mealplanb1.png',
+        'res_Photo/mealplanb2.png',
+        'res_Photo/mealplanb3.png'
+      ],
+      meta: '샌드위치/부리또 · 100개(협의) · 5일 전 예약',
+      tags: ['핫도그', '부리또', '간편식'],
+      notice: '배달, 픽업 둘다 가능 / 100개 이하면 서비스',
+      availability: []
+    },
+    '프로마치': {
+      images: [
+        'res_Photo/froma1.png',
+        'res_Photo/froma2.png',
+        'res_Photo/froma3.png',
+        'res_Photo/froma4.png'
+      ],
+      meta: '샌드위치/파니니 · 100개 · 3~7일 전 예약',
+      tags: ['파니니', '샌드위치', '비건옵션'],
+      notice: '배달, 픽업 둘다 가능 / 100개 기준 1주일 전 예약 필요',
+      availability: []
+    },
+    '치비치비': {
+      images: ['res_Photo/chibechibe.jpeg'],
+      meta: '양식/스테이크 · 50개(협의) · 7일 전 예약',
+      tags: ['치킨스테이크', '양식'],
+      notice: '픽업만 가능 / 포장시 음식이 식을 수 있음 / 보통맛·매운맛 선택 가능',
+      availability: []
+    },
+    '스시미소': {
+      images: ['res_Photo/sushimiso.png'],
+      meta: '일식 · 100개 이상 · 당일~1일 전 예약',
+      tags: ['초밥', '롤', '고급 도시락'],
+      notice: '배달은 전날 예약',
+      availability: []
+    },
+    '오봉집': {
+      images: ['res_Photo/obong.png'],
+      meta: '한식/볶음 · 100개 이상 · 1일 전 예약',
+      tags: ['직화볶음', '보쌈', '점심할인'],
+      notice: '픽업만 가능 / 11~15시 점심특선 가격 적용 가능',
+      availability: []
+    },
+    '우승식당': {
+      images: ['res_Photo/wooseng.png'],
+      meta: '한식 · 100개(협의) · 당일~1일 전 예약',
+      tags: ['제육', '두루치기', '가성비'],
+      notice: '50개 이상 주문 시 서비스 제공 / 고기만 채운 도시락 형태',
+      availability: []
+    },
+    '이공김밥': {
+      images: ['res_Photo/eegong.png'],
+      meta: '분식 · 100개 이상 · 1~3일 전 예약',
+      tags: ['김밥', '돈가스', '가성비'],
+      notice: '배달 협의 가능',
+      availability: []
     }
-  ]
-};
+  };
 
-// 기존에 보이던 식당 순서
-const RESTAURANT_ORDER = [
-  '본죽',
-  '비비당',
-  '고래돈가스',
-  '밀플랜비',
-  '프로마치',
-  '치비치비',
-  '스시미소',
-  '오봉집',
-  '우승식당',
-  '이공김밥',
-  '더 다양한 메뉴를 원하신다면 알려주세요'
-];
+  // “원하는 메뉴 찾아드려요” 특수 식당 (DB 말고 프론트에서 계속 관리)
+  const AGENT_RESTAURANT = {
+    id: 'r11',
+    name: '더 다양한 메뉴를 원하신다면 알려주세요',
+    images: ['res_Photo/agentMode.png'],
+    meta: '희망하시는 메뉴에 맞춰 최적의 식당을 직접 찾아드립니다',
+    tags: ['알아서 해드립니다'],
+    notice: '조건에 맞는 식당이 없을 경우 가장 적합한 대안을 찾아, 최대 익일 18시 이전까지 연락드립니다.',
+    availability: [],
+    menus: [
+      {
+        id: 'm11_1',
+        name: '원하는 메뉴를 찾아드려요. 추가요청사항에 카테고리, 개수, 예산, 요청사항을 적어주세요',
+        price: 0,
+        minQty: 1,
+        maxQty: 999,
+        note: ''
+      }
+    ]
+  };
 
-  // ===== 2. 음식점 데이터 (imageUrl -> images 배열로 변경) =====
-  // images: ['url1', 'url2', ...] 형태로 여러 장 넣으세요.
-  // ===== 2. 음식점 데이터 (minQty: 10, maxQty: 999 통일) =====
-  
+  // 기존에 보이던 식당 순서
+  const RESTAURANT_ORDER = [
+    '본죽',
+    '비비당',
+    '고래돈가스',
+    '밀플랜비',
+    '프로마치',
+    '치비치비',
+    '스시미소',
+    '오봉집',
+    '우승식당',
+    '이공김밥',
+    '더 다양한 메뉴를 원하신다면 알려주세요'
+  ];
+
   // ===== 2. DB에서 식당/메뉴 불러오기 =====
-let restaurants = [];  // DB에서 채워질 전역 변수
+  let restaurants = [];  // 전역 배열
 
-async function loadRestaurantsFromDB() {
-  // 1) 식당 목록
-  const { data: restRows, error: restError } = await supabaseClient
-    .from('restaurants')
-    .select('*')
-    .order('id', { ascending: true });
+  async function loadRestaurantsFromDB() {
+    // 1) 식당 목록
+    const { data: restRows, error: restError } = await supabaseClient
+      .from('restaurants')
+      .select('*')
+      .order('id', { ascending: true });
 
-  if (restError) {
-    console.error('restaurants 조회 오류', restError);
-    alert('음식점 정보를 불러오는 중 문제가 발생했습니다.');
-    return;
-  }
+    if (restError) {
+      console.error('restaurants 조회 오류', restError);
+      alert('음식점 정보를 불러오는 중 문제가 발생했습니다.');
+      return;
+    }
 
-  // 2) 메뉴 목록
-  const { data: menuRows, error: menuError } = await supabaseClient
-    .from('menus')
-    .select('*')
-    .order('restaurant_id', { ascending: true });
+    // 2) 메뉴 목록
+    const { data: menuRows, error: menuError } = await supabaseClient
+      .from('menus')
+      .select('*')
+      .order('restaurant_id', { ascending: true });
 
-  if (menuError) {
-    console.error('menus 조회 오류', menuError);
-    alert('메뉴 정보를 불러오는 중 문제가 발생했습니다.');
-    return;
-  }
+    if (menuError) {
+      console.error('menus 조회 오류', menuError);
+      alert('메뉴 정보를 불러오는 중 문제가 발생했습니다.');
+      return;
+    }
 
-  // 3) restaurant_id 기준으로 메뉴 묶기
-  const menuMap = {};
-  menuRows.forEach(m => {
-    if (!menuMap[m.restaurant_id]) menuMap[m.restaurant_id] = [];
-    menuMap[m.restaurant_id].push({
-      id: m.id,
-      name: m.name,
-      price: m.price,
-      minQty: m.min_qty,
-      maxQty: m.max_qty,
-      note: m.note || ''
+    // 3) restaurant_id 기준으로 메뉴 묶기
+    const menuMap = {};
+    menuRows.forEach(m => {
+      if (!menuMap[m.restaurant_id]) menuMap[m.restaurant_id] = [];
+      menuMap[m.restaurant_id].push({
+        id: m.id,
+        name: m.name,
+        price: m.price,
+        minQty: m.min_qty,
+        maxQty: m.max_qty,
+        note: m.note || ''
+      });
     });
-  });
 
-  // 4) 기존 코드에서 쓰던 형태로 변환
-  // ===== 2. DB에서 식당/메뉴 불러오기 =====
-let restaurants = [];  // 위에서 전역으로 선언하는 거 유지
+    // 4) DB 데이터 + 정적 메타 정보를 합치기
+    restaurants = restRows.map(r => {
+      const meta = STATIC_RESTAURANT_META[r.name] || {};
 
-async function loadRestaurantsFromDB() {
-  const { data: restRows, error: restError } = await supabaseClient
-    .from('restaurants')
-    .select('*')
-    .order('id', { ascending: true });
-
-  if (restError) {
-    console.error('restaurants 조회 오류', restError);
-    alert('음식점 정보를 불러오는 중 문제가 발생했습니다.');
-    return;
-  }
-
-  const { data: menuRows, error: menuError } = await supabaseClient
-    .from('menus')
-    .select('*')
-    .order('restaurant_id', { ascending: true });
-
-  if (menuError) {
-    console.error('menus 조회 오류', menuError);
-    alert('메뉴 정보를 불러오는 중 문제가 발생했습니다.');
-    return;
-  }
-
-  const menuMap = {};
-  menuRows.forEach(m => {
-    if (!menuMap[m.restaurant_id]) menuMap[m.restaurant_id] = [];
-    menuMap[m.restaurant_id].push({
-      id: m.id,
-      name: m.name,
-      price: m.price,
-      minQty: m.min_qty,
-      maxQty: m.max_qty,
-      note: m.note || ''
+      return {
+        id: r.id,
+        name: r.name,
+        images: r.images && r.images.length ? r.images : (meta.images || []),
+        meta: r.meta || meta.meta || '',
+        tags: (r.tags && r.tags.length ? r.tags : (meta.tags || [])),
+        notice: r.notice || meta.notice || '',
+        availability: r.availability || meta.availability || [],
+        menus: menuMap[r.id] || []
+      };
     });
-  });
 
-  // DB 데이터 + 정적 메타 정보를 합치기
-  restaurants = restRows.map(r => {
-    const meta = STATIC_RESTAURANT_META[r.name] || {};
+    // 5) 마지막에 “원하는 메뉴 찾아드려요” 특수 식당 추가
+    restaurants.push(AGENT_RESTAURANT);
 
-    return {
-      id: r.id,
-      name: r.name,
-      images: r.images && r.images.length ? r.images : (meta.images || []),
-      meta: r.meta || meta.meta || '',
-      tags: (r.tags && r.tags.length ? r.tags : (meta.tags || [])),
-      notice: r.notice || meta.notice || '',
-      availability: r.availability || meta.availability || [],
-      menus: menuMap[r.id] || []
-    };
-  });
+    // 6) 식당 순서를 기존과 같게 정렬
+    restaurants.sort((a, b) => {
+      const idxA = RESTAURANT_ORDER.indexOf(a.name);
+      const idxB = RESTAURANT_ORDER.indexOf(b.name);
+      return idxA - idxB;
+    });
+  }
 
-  // 마지막에 “원하는 메뉴 찾아드려요” 특수 식당 추가
-  restaurants.push(AGENT_RESTAURANT);
-
-  // 식당 순서를 기존과 같게 정렬
-  restaurants.sort((a, b) => {
-    const idxA = RESTAURANT_ORDER.indexOf(a.name);
-    const idxB = RESTAURANT_ORDER.indexOf(b.name);
-    return idxA - idxB;
-  });
-}
-
-}
-
-  
   // ===== 3. 렌더링 함수들 =====
   async function init() {
-  // 1) DB에서 restaurants, menus 불러오기
-  await loadRestaurantsFromDB();
+    // DB에서 restaurants, menus 불러오기
+    await loadRestaurantsFromDB();
 
-  // 2) 나머지 기존 로직 그대로
-  renderRestaurantList();
-  if (restaurants.length > 0) {
-    state.selectedRestaurantId = restaurants[0].id;
-    renderRestaurantDetail();
+    renderRestaurantList();
+    if (restaurants.length > 0) {
+      state.selectedRestaurantId = restaurants[0].id;
+      renderRestaurantDetail();
+    }
+    renderCartSummary();
+
+    const form = document.getElementById('order-form');
+    form.addEventListener('submit', submitOrder);
   }
-  renderCartSummary();
-
-  const form = document.getElementById('order-form');
-  form.addEventListener('submit', submitOrder);
-}
 
   function renderRestaurantList() {
     const container = document.getElementById('restaurant-list');
@@ -702,7 +655,6 @@ async function loadRestaurantsFromDB() {
         renderCartSummary();
       };
 
-      // 목록 썸네일 (첫 번째 이미지만 표시)
       if (r.images && r.images.length > 0) {
         const img = document.createElement('img');
         img.className = 'restaurant-thumb';
@@ -746,8 +698,7 @@ async function loadRestaurantsFromDB() {
     const noticeEl = document.getElementById('rest-notice');
     const availContainer = document.getElementById('availability-container');
     const menuBody = document.getElementById('menu-body');
-    
-    // 갤러리 요소들
+
     const galleryArea = document.getElementById('gallery-area');
     const galleryMainImg = document.getElementById('gallery-main-img');
     const galleryThumbs = document.getElementById('gallery-thumbs');
@@ -762,26 +713,23 @@ async function loadRestaurantsFromDB() {
       return;
     }
 
-    // [갤러리 렌더링]
     if (rest.images && rest.images.length > 0) {
       galleryArea.style.display = 'block';
-      // 메인 이미지를 첫 번째로 설정
       galleryMainImg.src = rest.images[0];
       galleryMainImg.style.display = 'block';
 
-      // 썸네일 렌더링
       galleryThumbs.innerHTML = '';
       rest.images.forEach((imgUrl, idx) => {
         const thumb = document.createElement('img');
         thumb.src = imgUrl;
         thumb.className = 'gallery-thumb-item';
-        if (idx === 0) thumb.classList.add('active'); // 첫 번째 활성화
+        if (idx === 0) thumb.classList.add('active');
 
         thumb.onclick = () => {
-          // 메인 이미지 변경
           galleryMainImg.src = imgUrl;
-          // 활성 상태 스타일 변경
-          document.querySelectorAll('.gallery-thumb-item').forEach(el => el.classList.remove('active'));
+          document
+            .querySelectorAll('.gallery-thumb-item')
+            .forEach(el => el.classList.remove('active'));
           thumb.classList.add('active');
         };
         galleryThumbs.appendChild(thumb);
@@ -794,7 +742,6 @@ async function loadRestaurantsFromDB() {
     metaEl.textContent = rest.meta;
     noticeEl.textContent = '안내사항: ' + rest.notice;
 
-    // 예약 가능 시간
     availContainer.innerHTML = '';
     rest.availability.forEach(day => {
       const dayDiv = document.createElement('div');
@@ -814,7 +761,6 @@ async function loadRestaurantsFromDB() {
       availContainer.appendChild(dayDiv);
     });
 
-    // 메뉴 리스트
     menuBody.innerHTML = '';
     rest.menus.forEach(menu => {
       const tr = document.createElement('tr');
@@ -910,7 +856,7 @@ async function loadRestaurantsFromDB() {
     }
 
     let total = 0;
-    let lines = items.map(item => {
+    const lines = items.map(item => {
       const lineTotal = item.price * item.qty;
       total += lineTotal;
       return `- ${item.name} x ${item.qty}개 = ${lineTotal.toLocaleString()}원`;
@@ -923,7 +869,6 @@ async function loadRestaurantsFromDB() {
       `<span class="small">※ 실제 할인 및 최종 금액은 가게와 협의 후 확정됩니다.</span>`;
   }
 
-  // ===== 모달 관련 함수 =====
   function clickMainImage() {
     const galleryMainImg = document.getElementById('gallery-main-img');
     openModal(galleryMainImg.src);
@@ -941,7 +886,7 @@ async function loadRestaurantsFromDB() {
     modal.style.display = 'none';
   }
 
-  // ===== 4. 주문 제출 → Supabase에 저장 (중복 방지 적용) =====
+  // ===== 4. 주문 제출 → Supabase에 저장 =====
   async function submitOrder(event) {
     event.preventDefault();
 
@@ -955,15 +900,13 @@ async function loadRestaurantsFromDB() {
       return;
     }
 
-    // [중복 방지 1] 버튼 가져오기 및 상태 저장
     const form = document.getElementById('order-form');
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.textContent;
 
-    // [중복 방지 2] 버튼 비활성화 및 텍스트 변경
     submitBtn.disabled = true;
     submitBtn.textContent = '제출 중입니다...';
-    submitBtn.style.opacity = '0.7'; // 시각적으로 흐리게 처리
+    submitBtn.style.opacity = '0.7';
     submitBtn.style.cursor = 'not-allowed';
 
     const formData = new FormData(form);
@@ -985,12 +928,10 @@ async function loadRestaurantsFromDB() {
       restaurant_name: rest.name,
       items: items,
       total_amount: total,
-
       org_name: formData.get('단체명'),
       contact_name: formData.get('담당자명'),
       contact_phone: formData.get('담당자_연락처'),
       contact_email: formData.get('담당자_이메일'),
-
       delivery_type: formData.get('배송_방법'),
       address: formData.get('주소_또는_수령장소'),
       desired_datetime: formData.get('희망_일시'),
@@ -1013,12 +954,10 @@ async function loadRestaurantsFromDB() {
       form.reset();
       state.cart = [];
       renderCartSummary();
-
     } catch (e) {
       console.error(e);
       alert('일시적인 오류가 발생했습니다. 나중에 다시 시도해주세요.');
     } finally {
-      // [중복 방지 3] 성공하든 실패하든 처리가 끝나면 버튼 원상복구
       submitBtn.disabled = false;
       submitBtn.textContent = originalBtnText;
       submitBtn.style.opacity = '1';
